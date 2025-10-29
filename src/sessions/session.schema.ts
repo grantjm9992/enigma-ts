@@ -1,32 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-
-class EmbeddedUser {
-    @Prop({ required: true })
-    name: string;
-
-    @Prop({ required: true })
-    surname: string;
-
-    @Prop({ required: true })
-    email: string;
-
-    @Prop({ required: true })
-    phone: string;
-
-    @Prop({ required: true })
-    role: string;
-}
+import { Document, Types } from 'mongoose';
 
 class EmbeddedExercise {
+    @Prop({ type: Types.ObjectId, required: true })
+    exerciseId: Types.ObjectId;
+
     @Prop({ required: true })
     name: string;
-
-    @Prop({ required: true })
-    category: string;
-
-    @Prop({ type: [String], default: [] })
-    tags: string[];
 
     @Prop({ required: true })
     duration: number;
@@ -39,6 +19,9 @@ class EmbeddedExercise {
 }
 
 class EmbeddedRoutine {
+    @Prop({ type: Types.ObjectId, required: true })
+    routineId: Types.ObjectId;
+
     @Prop({ required: true })
     name: string;
 
@@ -57,11 +40,11 @@ export class Session extends Document {
     @Prop({ required: true })
     date: Date;
 
-    @Prop({ type: [EmbeddedUser], default: [] })
-    attendees: EmbeddedUser[];
+    @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
+    attendeeIds: Types.ObjectId[];
 
-    @Prop({ required: true, type: EmbeddedUser })
-    instructor: EmbeddedUser;
+    @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+    instructorId: Types.ObjectId;
 
     @Prop({ type: [EmbeddedRoutine], default: [] })
     routines: EmbeddedRoutine[];

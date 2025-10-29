@@ -1,16 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Exercise extends Document {
     @Prop({ required: true })
     name: string;
 
-    @Prop({ required: true })
-    category: string;
+    @Prop({ type: Types.ObjectId, ref: 'ExerciseCategory', required: true })
+    categoryId: Types.ObjectId;
 
-    @Prop({ type: [String], default: [] })
-    tags: string[];
+    @Prop({ type: [{ type: Types.ObjectId, ref: 'Tag' }], default: [] })
+    tagIds: Types.ObjectId[];
 
     @Prop({ required: true })
     duration: number; // in seconds

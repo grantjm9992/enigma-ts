@@ -14,28 +14,47 @@ export class ExercisesService {
     }
 
     async findAll(): Promise<Exercise[]> {
-        return this.exerciseModel.find().exec();
+        return this.exerciseModel
+            .find()
+            .populate('categoryId', 'name description')
+            .populate('tagIds', 'name color')
+            .exec();
     }
 
     async findOne(id: string): Promise<Exercise> {
-        const exercise = await this.exerciseModel.findById(id).exec();
+        const exercise = await this.exerciseModel
+            .findById(id)
+            .populate('categoryId', 'name description')
+            .populate('tagIds', 'name color')
+            .exec();
+
         if (!exercise) {
             throw new NotFoundException(`Exercise with ID ${id} not found`);
         }
         return exercise;
     }
 
-    async findByCategory(category: string): Promise<Exercise[]> {
-        return this.exerciseModel.find({ category }).exec();
+    async findByCategory(categoryId: string): Promise<Exercise[]> {
+        return this.exerciseModel
+            .find({ categoryId })
+            .populate('categoryId', 'name description')
+            .populate('tagIds', 'name color')
+            .exec();
     }
 
-    async findByTags(tags: string[]): Promise<Exercise[]> {
-        return this.exerciseModel.find({ tags: { $in: tags } }).exec();
+    async findByTags(tagIds: string[]): Promise<Exercise[]> {
+        return this.exerciseModel
+            .find({ tagIds: { $in: tagIds } })
+            .populate('categoryId', 'name description')
+            .populate('tagIds', 'name color')
+            .exec();
     }
 
     async update(id: string, updateExerciseDto: UpdateExerciseDto): Promise<Exercise> {
         const exercise = await this.exerciseModel
             .findByIdAndUpdate(id, updateExerciseDto, { new: true })
+            .populate('categoryId', 'name description')
+            .populate('tagIds', 'name color')
             .exec();
 
         if (!exercise) {

@@ -1,31 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class EmbeddedUserDto {
-    @ApiProperty({ example: 'Mike' })
-    readonly name: string;
-
-    @ApiProperty({ example: 'Tyson' })
-    readonly surname: string;
-
-    @ApiProperty({ example: 'mike@boxing.com' })
-    readonly email: string;
-
-    @ApiProperty({ example: '+1234567890' })
-    readonly phone: string;
-
-    @ApiProperty({ example: 'trainer', enum: ['admin', 'trainer', 'user'] })
-    readonly role: string;
-}
-
 export class EmbeddedExerciseDto {
+    @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'Original exercise ID' })
+    readonly exerciseId: string;
+
     @ApiProperty({ example: 'Jump Rope' })
     readonly name: string;
-
-    @ApiProperty({ example: 'Cardio' })
-    readonly category: string;
-
-    @ApiPropertyOptional({ example: ['Warm-up'], type: [String] })
-    readonly tags?: string[];
 
     @ApiProperty({ example: 180, description: 'Duration in seconds' })
     readonly duration: number;
@@ -38,6 +18,9 @@ export class EmbeddedExerciseDto {
 }
 
 export class EmbeddedRoutineDto {
+    @ApiProperty({ example: '507f1f77bcf86cd799439012', description: 'Original routine ID' })
+    readonly routineId: string;
+
     @ApiProperty({ example: 'Beginner Morning Routine' })
     readonly name: string;
 
@@ -55,11 +38,15 @@ export class CreateSessionDto {
     @ApiProperty({ example: '2025-10-27T10:00:00.000Z' })
     readonly date: Date;
 
-    @ApiPropertyOptional({ type: [EmbeddedUserDto] })
-    readonly attendees?: EmbeddedUserDto[];
+    @ApiPropertyOptional({
+        example: ['507f1f77bcf86cd799439013', '507f1f77bcf86cd799439014'],
+        type: [String],
+        description: 'Array of user IDs'
+    })
+    readonly attendeeIds?: string[];
 
-    @ApiProperty({ type: EmbeddedUserDto })
-    readonly instructor: EmbeddedUserDto;
+    @ApiProperty({ example: '507f1f77bcf86cd799439015', description: 'Instructor user ID' })
+    readonly instructorId: string;
 
     @ApiProperty({ type: [EmbeddedRoutineDto] })
     readonly routines: EmbeddedRoutineDto[];
@@ -75,11 +62,15 @@ export class UpdateSessionDto {
     @ApiPropertyOptional({ example: '2025-10-28T10:00:00.000Z' })
     readonly date?: Date;
 
-    @ApiPropertyOptional({ type: [EmbeddedUserDto] })
-    readonly attendees?: EmbeddedUserDto[];
+    @ApiPropertyOptional({
+        example: ['507f1f77bcf86cd799439013'],
+        type: [String],
+        description: 'Array of user IDs'
+    })
+    readonly attendeeIds?: string[];
 
-    @ApiPropertyOptional({ type: EmbeddedUserDto })
-    readonly instructor?: EmbeddedUserDto;
+    @ApiPropertyOptional({ example: '507f1f77bcf86cd799439015', description: 'Instructor user ID' })
+    readonly instructorId?: string;
 
     @ApiPropertyOptional({ type: [EmbeddedRoutineDto] })
     readonly routines?: EmbeddedRoutineDto[];

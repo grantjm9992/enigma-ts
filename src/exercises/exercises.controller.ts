@@ -28,16 +28,16 @@ export class ExercisesController {
     }
 
     @Get()
-    @ApiOperation({ summary: 'Get all exercises or filter by category/tags' })
-    @ApiQuery({ name: 'category', required: false })
-    @ApiQuery({ name: 'tags', required: false, description: 'Comma-separated list of tags' })
+    @ApiOperation({ summary: 'Get all exercises or filter by categoryId/tagIds' })
+    @ApiQuery({ name: 'categoryId', required: false, description: 'Filter by category ID' })
+    @ApiQuery({ name: 'tagIds', required: false, description: 'Comma-separated list of tag IDs' })
     @ApiResponse({ status: 200, description: 'List of exercises' })
-    findAll(@Query('category') category?: string, @Query('tags') tags?: string) {
-        if (category) {
-            return this.exercisesService.findByCategory(category);
+    findAll(@Query('categoryId') categoryId?: string, @Query('tagIds') tagIds?: string) {
+        if (categoryId) {
+            return this.exercisesService.findByCategory(categoryId);
         }
-        if (tags) {
-            const tagArray = tags.split(',');
+        if (tagIds) {
+            const tagArray = tagIds.split(',');
             return this.exercisesService.findByTags(tagArray);
         }
         return this.exercisesService.findAll();
