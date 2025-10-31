@@ -6,6 +6,7 @@ import { RoutinesModule } from './routines/routines.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { TagsModule } from './tags/tags.module';
 import { ExerciseCategoriesModule } from './exercise-categories/categories.module';
+import {AuthModule} from "./auth/auth.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ExerciseCategoriesModule } from './exercise-categories/categories.modul
     SessionsModule,
     TagsModule,
     ExerciseCategoriesModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

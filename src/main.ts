@@ -19,6 +19,7 @@ async function bootstrap() {
       .addTag('exercises', 'Exercise management')
       .addTag('routines', 'Routine management with embedded exercises')
       .addTag('sessions', 'Training session management')
+      .addTag('auth', 'Auth management')
       .build();
 
   const document = SwaggerModule.createDocument(app, config);
