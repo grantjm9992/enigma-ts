@@ -13,13 +13,14 @@ async function bootstrap() {
       .setTitle('Boxing Gym API')
       .setDescription('Complete REST API for managing a boxing gym with exercises, routines, sessions, and users')
       .setVersion('1.0')
+      .addBearerAuth()
+      .addTag('auth', 'Authentication endpoints')
       .addTag('users', 'User management endpoints')
       .addTag('exercise-categories', 'Exercise category management')
       .addTag('tags', 'Tag management for exercises')
       .addTag('exercises', 'Exercise management')
       .addTag('routines', 'Routine management with embedded exercises')
       .addTag('sessions', 'Training session management')
-      .addTag('auth', 'Auth management')
       .build();
 
   const document = SwaggerModule.createDocument(app, config);

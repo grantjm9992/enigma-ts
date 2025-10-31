@@ -1,12 +1,16 @@
 import {
     Controller,
     Post,
+    Get,
     Body,
     HttpCode,
     HttpStatus,
+    UseGuards,
+    Request,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto, ResetPasswordDto, ChangePasswordDto, LoginResponseDto } from './dto/auth.dto';
 
 @ApiTags('auth')
@@ -45,5 +49,15 @@ export class AuthController {
     @ApiResponse({ status: 400, description: 'Invalid or expired token' })
     changePassword(@Body() changePasswordDto: ChangePasswordDto) {
         return this.authService.changePassword(changePasswordDto);
+    }
+
+    @Get('profile')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get current user profile (requires authentication)' })
+    @ApiResponse({ status: 200, description: 'User profile' })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    getProfile(@Request() req) {
+        return req.user;
     }
 }

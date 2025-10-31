@@ -25,10 +25,16 @@ export class User extends Document {
   role: UserRole;
 
   @Prop({ required: true })
-  password: string; // Remember to hash this in production!
+  password: string; // Hashed password
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop()
+  resetToken?: string;
+
+  @Prop()
+  resetTokenExpiry?: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

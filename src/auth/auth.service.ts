@@ -1,13 +1,18 @@
-import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import { User } from '../users/user.schema';
 import { LoginDto, ResetPasswordDto, ChangePasswordDto } from './dto/auth.dto';
+import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
-    constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+    constructor(
+        @InjectModel(User.name) private userModel: Model<User>,
+        private jwtService: JwtService,
+    ) {}
 
     async login(loginDto: LoginDto) {
         const { email, password } = loginDto;
@@ -19,17 +24,19 @@ export class AuthService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        // In production, you should compare hashed passwords using bcrypt
-        // For now, comparing plain text (NOT SECURE - CHANGE IN PRODUCTION)
-        if (user.password !== password) {
+        // Compare hashed password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        // Generate a simple token (In production, use JWT)
-        const token = this.generateToken(user);
+        // Generate JWT token
+        const payload = { sub: user._id, email: user.email, role: user.role };
+        const accessToken = this.jwtService.sign(payload);
 
         return {
-            accessToken: token,
+            accessToken,
             user: {
                 id: user._id,
                 email: user.email,
@@ -52,13 +59,17 @@ export class AuthService {
             };
         }
 
-        // Generate reset token (in production, save this to DB with expiry)
+        // Generate reset token
         const resetToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = await bcrypt.hash(resetToken, 10);
 
-        // In production:
-        // 1. Save resetToken and expiry to user document
-        // 2. Send email with reset link containing the token
-        // 3. Token should expire after 1 hour
+        // Save hashed token with 1 hour expiry
+        user.resetToken = hashedToken;
+        user.resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+        await user.save();
+
+        // In production: Send email with reset link
+        // Example: await this.emailService.sendPasswordReset(email, resetToken);
 
         console.log(`Password reset token for ${email}: ${resetToken}`);
         console.log(`Reset link: http://localhost:3000/auth/reset-password?token=${resetToken}`);
@@ -73,60 +84,47 @@ export class AuthService {
     async changePassword(changePasswordDto: ChangePasswordDto) {
         const { token, newPassword } = changePasswordDto;
 
-        // In production:
-        // 1. Find user by reset token
-        // 2. Check if token is expired
-        // 3. Hash new password with bcrypt
-        // 4. Update password and clear reset token
+        // Find user with valid reset token
+        const users = await this.userModel.find({
+            resetToken: { $exists: true },
+            resetTokenExpiry: { $gt: new Date() },
+        }).exec();
 
-        // This is a simplified version for demonstration
-        throw new BadRequestException('Token validation not implemented. In production, validate token from database.');
-
-        // Example production code:
-        // const user = await this.userModel.findOne({
-        //   resetToken: token,
-        //   resetTokenExpiry: { $gt: new Date() }
-        // }).exec();
-        //
-        // if (!user) {
-        //   throw new BadRequestException('Invalid or expired reset token');
-        // }
-        //
-        // const hashedPassword = await bcrypt.hash(newPassword, 10);
-        // user.password = hashedPassword;
-        // user.resetToken = undefined;
-        // user.resetTokenExpiry = undefined;
-        // await user.save();
-        //
-        // return { message: 'Password successfully changed' };
-    }
-
-    private generateToken(user: any): string {
-        // In production, use proper JWT with @nestjs/jwt
-        // Example: return this.jwtService.sign({ sub: user._id, email: user.email });
-
-        // Simple token for demonstration (NOT SECURE)
-        const payload = {
-            userId: user._id,
-            email: user.email,
-            role: user.role,
-        };
-        return Buffer.from(JSON.stringify(payload)).toString('base64');
-    }
-
-    async validateToken(token: string) {
-        try {
-            // In production, verify JWT token
-            const payload = JSON.parse(Buffer.from(token, 'base64').toString());
-            const user = await this.userModel.findById(payload.userId).exec();
-
-            if (!user || !user.isActive) {
-                throw new UnauthorizedException('Invalid token');
+        let validUser = null;
+        for (const user of users) {
+            const isValidToken = await bcrypt.compare(token, user.resetToken);
+            if (isValidToken) {
+                validUser = user;
+                break;
             }
-
-            return user;
-        } catch (error) {
-            throw new UnauthorizedException('Invalid token');
         }
+
+        if (!validUser) {
+            throw new BadRequestException('Invalid or expired reset token');
+        }
+
+        // Hash new password and update user
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        validUser.password = hashedPassword;
+        validUser.resetToken = undefined;
+        validUser.resetTokenExpiry = undefined;
+        await validUser.save();
+
+        return { message: 'Password successfully changed' };
+    }
+
+    async hashPassword(password: string): Promise<string> {
+        return bcrypt.hash(password, 10);
+    }
+
+    async validateUser(email: string, password: string): Promise<any> {
+        const user = await this.userModel.findOne({ email }).exec();
+
+        if (user && await bcrypt.compare(password, user.password)) {
+            const { password, ...result } = user.toObject();
+            return result;
+        }
+
+        return null;
     }
 }
