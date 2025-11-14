@@ -54,6 +54,9 @@ export class Session extends Document {
 
     @Prop()
     location?: string;
+
+    @Prop()
+    duration?: number;
 }
 
 export const SessionSchema = SchemaFactory.createForClass(Session);

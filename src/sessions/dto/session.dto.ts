@@ -56,6 +56,9 @@ export class CreateSessionDto {
 
     @ApiPropertyOptional({ example: 'Main Gym' })
     readonly location?: string;
+
+    @ApiPropertyOptional({ example: 3600, description: 'Duration in seconds' })
+    readonly duration?: number;
 }
 
 export class UpdateSessionDto {
@@ -80,4 +83,7 @@ export class UpdateSessionDto {
 
     @ApiPropertyOptional({ example: 'Secondary Gym' })
     readonly location?: string;
+
+    @ApiPropertyOptional({ example: 3600, description: 'Duration in seconds' })
+    readonly duration?: number;
 }
