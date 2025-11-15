@@ -104,7 +104,7 @@ export class SessionsController {
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @ApiResponse({ status: 404, description: 'Session not found' })
     signupToSession(@Param('id') id: string, @CurrentUser() user: any) {
-        return this.sessionsService.signupToSession(id, user.userId);
+        return this.sessionsService.signupToSession(id, user.userId.toString());
     }
 
     @Post(':id/remove')
@@ -117,6 +117,6 @@ export class SessionsController {
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     @ApiResponse({ status: 404, description: 'Session not found' })
     removeFromSession(@Param('id') id: string, @CurrentUser() user: any) {
-        return this.sessionsService.removeFromSession(id, user.userId);
+        return this.sessionsService.removeFromSession(id, user.userId.toString());
     }
 }
