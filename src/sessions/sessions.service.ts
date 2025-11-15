@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Session } from './session.schema';
 import { CreateSessionDto, UpdateSessionDto } from './dto/session.dto';
 
@@ -57,5 +57,49 @@ export class SessionsService {
         if (!result) {
             throw new NotFoundException(`Session with ID ${id} not found`);
         }
+    }
+
+    async signupToSession(sessionId: string, userId: string): Promise<Session> {
+        const session = await this.sessionModel.findById(sessionId).exec();
+
+        if (!session) {
+            throw new NotFoundException(`Session with ID ${sessionId} not found`);
+        }
+
+        const userObjectId = new Types.ObjectId(userId);
+
+        // Check if user is already signed up
+        const isAlreadySignedUp = session.attendeeIds.some(
+            (attendeeId) => attendeeId.toString() === userId
+        );
+
+        if (isAlreadySignedUp) {
+            throw new BadRequestException('User is already signed up for this session');
+        }
+
+        // Add user to attendeeIds
+        session.attendeeIds.push(userObjectId);
+        return session.save();
+    }
+
+    async removeFromSession(sessionId: string, userId: string): Promise<Session> {
+        const session = await this.sessionModel.findById(sessionId).exec();
+
+        if (!session) {
+            throw new NotFoundException(`Session with ID ${sessionId} not found`);
+        }
+
+        // Check if user is signed up
+        const attendeeIndex = session.attendeeIds.findIndex(
+            (attendeeId) => attendeeId.toString() === userId
+        );
+
+        if (attendeeIndex === -1) {
+            throw new BadRequestException('User is not signed up for this session');
+        }
+
+        // Remove user from attendeeIds
+        session.attendeeIds.splice(attendeeIndex, 1);
+        return session.save();
     }
 }
